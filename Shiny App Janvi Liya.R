@@ -33,15 +33,16 @@ ui <- dashboardPage(
     radioButtons(inputId = "sex", label = "Select Gender:", choices = c("female", "male")),
     sliderInput(inputId = "bmi", label = "Select Body Mass Index:", min = 10, max = 65, value = c(10, 65)),
     sliderInput(inputId = "diabp", label = "Select Diastolic BP:", min = 20, max = 190, value = c(60, 90)),
-    sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140))),
+    sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140)),
     radioButtons(inputId = "cvd", label = "Select Cardiovascular Disease:", choices = c("NO", "YES")),
     radioButtons(inputId = "hosp", label = "Select Hospitalization:", choices = c("NO", "YES")),
     sliderInput(inputId = "hospdays", label = "Select Hospitalization Days:", min = 0, max = 1800, value = c(30, 90)),
     radioButtons(inputId = "death", label = "Select Vital Status:", choices = c("Death", "Alive")),
     sliderInput(inputId = "deathdays", label = "Select Death Day:", min = 0, max = 1800, value = c(1300, 1600)),
-    
-    dashboardBody(plotOutput("plot1"),
-    dataTableOutput("table1")))
+  dashboardBody(
+    plotOutput("plot1"),
+    dataTableOutput("table1")
+  ))
 
 server <- function(input, output) {}
 
