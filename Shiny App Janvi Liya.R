@@ -32,7 +32,10 @@ ui <- dashboardPage(
     radioButtons(inputId = "sex", label = "Select Gender:", choices = c("female", "male")),
     sliderInput(inputId = "bmi", label = "Select Body Mass Index:", min = 10, max = 65, value = c(10, 65)),
     sliderInput(inputId = "klevel", label = "Select Serum Potassium Level:", min = 0, max = 450, value = c(0, 50)),
-    sliderInput(inputId = "creatinine", label = "Select Serum Creatinine:", min = 0, max = 3.8, value = c(0.8, 1.4))),
+    sliderInput(inputId = "creatinine", label = "Select Serum Creatinine:", min = 0, max = 3.8, value = c(0.8, 1.4)), 
+    sliderInput(inputId = "diabp", label = "Select Diastolic BP:", min = 20, max = 190, value = c(60, 90)),
+    sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140))),
+  
   dashboardBody(
     plotOutput("plot1"),
     dataTableOutput("table1")
@@ -42,7 +45,4 @@ server <- function(input, output) {}
 
 shinyApp(ui = ui, server = server)
 
-#hello my name is Janvi and I am making changes to this file so that we can practice pull and push and commit
-#because it is veryyyyy difficulttt and I dont understanddddd
-#hopefully we can do this assignment nicely!!!!
-#yayyyyyy
+
