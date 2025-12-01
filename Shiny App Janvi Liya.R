@@ -41,3 +41,8 @@ ui <- dashboardPage(
 server <- function(input, output) {}
 
 shinyApp(ui = ui, server = server)
+
+#hello my name is Janvi and I am making changes to this file so that we can practice pull and push and commit
+#because it is veryyyyy difficulttt and I dont understanddddd
+#hopefully we can do this assignment nicely!!!!
+#yayyyyyy
