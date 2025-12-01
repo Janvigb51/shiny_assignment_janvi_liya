@@ -19,7 +19,7 @@ dig$TRTMT <- factor(dig$TRTMT, levels = c(0,1), labels = c("placebo","treatment"
 dig$SEX <- factor(dig$SEX, levels = c(1,2), labels = c("male","female"))
 dig$DEATH <- factor(dig$DEATH, levels = c(0,1), labels = c("death","alive"))
 dig_data <- dig %>%
-  select(ID, TRTMT, AGE, SEX, BMI, KLEVEL, CREAT, DIABP, SYSBP, HYPERTEN, CVD, WHF, DIG, HOSP, HOSPDAYS, DEATH, DEATHDAY)
+  select(ID, TRTMT, AGE, SEX, BMI, DIABP, SYSBP, CVD, HOSP, HOSPDAYS, DEATH, DEATHDAY)
 
 
 # Get Started
@@ -31,8 +31,6 @@ ui <- dashboardPage(
     sliderInput(inputId = "age", label = "Select Age:", min = 20, max = 90, value = c(60, 70)),
     radioButtons(inputId = "sex", label = "Select Gender:", choices = c("female", "male")),
     sliderInput(inputId = "bmi", label = "Select Body Mass Index:", min = 10, max = 65, value = c(10, 65)),
-    sliderInput(inputId = "klevel", label = "Select Serum Potassium Level:", min = 0, max = 450, value = c(0, 50)),
-    sliderInput(inputId = "creatinine", label = "Select Serum Creatinine:", min = 0, max = 3.8, value = c(0.8, 1.4)), 
     sliderInput(inputId = "diabp", label = "Select Diastolic BP:", min = 20, max = 190, value = c(60, 90)),
     sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140))),
   
