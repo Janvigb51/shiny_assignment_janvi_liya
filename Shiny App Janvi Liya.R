@@ -36,7 +36,7 @@ ui <- dashboardPage(
       style = "position: relative; overflow: visible;",
       menuItem( "Digitalis Investigation Group", tabName = "intro",
                 icon = icon("user-md"), selected = TRUE),
-      menuItem("Age vs BMI", tabName = "age_bmi", icon = icon("vial")),
+      menuItem("Age vs Body Mass Index", tabName = "age_bmi", icon = icon("vial")),
       menuItem(HTML("Diastolic vs Systolic<br>Blood Pressure"),
                tabName = "bp", icon = icon("heartbeat")),
       conditionalPanel(
@@ -78,6 +78,8 @@ ui <- dashboardPage(
 #      sliderInput(inputId = "hospdays", label = "Select Hospitalization Days:", min = 0, max = 1800, value = c(30, 90)),
 #      checkboxGroupInput(inputId = "death", label = "Select Vital Status:", choices = c("death", "alive"), selected = c("death", "alive")),
 #      sliderInput(inputId = "deathdays", label = "Select Death Day:", min = 0, max = 1800, value = c(1300, 1600)))),
+
+
   dashboardBody(
     tabItems(
       tabItem(tabName = "intro",
@@ -111,10 +113,22 @@ ui <- dashboardPage(
       tabItem(tabName = "bp",
               plotOutput("plot2")))))
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  observeEvent(input$sidebar, {
+    if (input$sidebar == "age_bmi") {
+      updateCheckboxGroupInput(session, "treatment", selected = character(0))
+      updateCheckboxGroupInput(session, "sex", selected = character(0))
+    }
+    if (input$sidebar == "bp") {
+      updateCheckboxGroupInput(session, "treatment", selected = character(0))
+      updateCheckboxGroupInput(session, "sex", selected = character(0))
+    }
+  })
   dig_1 <- reactive({
     req(input$sidebar == "age_bmi")
-    req(input$treatment, input$age, input$sex, input$bmi)
+    df <- dig_data
+    if (length(input$treatment) == 0 || length(input$sex) == 0) {
+      return(df[0, ])}
     dig_data %>%
       filter(TRTMT %in% input$treatment) %>%
       filter(AGE  >= input$age[1],  AGE  <= input$age[2]) %>%
@@ -123,6 +137,11 @@ server <- function(input, output) {
   })
   output$plot1 <- renderPlot({
     req(input$sidebar == "age_bmi")
+    validate(
+      need(length(input$treatment) > 0,
+           "Please select at least one treatment group"),
+      need(length(input$sex) > 0,
+           "Please select at least one gender"))
     df <- dig_1()
     ggplot(data = df, mapping = aes(x = AGE, y = BMI, colour = TRTMT, shape = SEX)) +
       geom_point(size = 2, alpha = 0.7) +
@@ -136,7 +155,9 @@ server <- function(input, output) {
   })
   dig_2 <- reactive({
     req(input$sidebar == "bp")
-    req(input$treatment, input$sex, input$diabp, input$sysbp)
+    df <- dig_data
+    if (length(input$treatment) == 0 || length(input$sex) == 0) {
+      return(df[0, ])}
     dig_data %>%
       filter(TRTMT %in% input$treatment) %>%
       filter(SEX %in% input$sex) %>%
@@ -145,6 +166,11 @@ server <- function(input, output) {
   })
   output$plot2 <- renderPlot({
     req(input$sidebar == "bp")
+    validate(
+      need(length(input$treatment) > 0,
+           "Please select at least one treatment group"),
+      need(length(input$sex) > 0,
+           "Please select at least one gender"))
     df_2 <- dig_2()
     ggplot(data = df_2, mapping = aes(x = SYSBP, y = DIABP, colour = TRTMT, shape = SEX)) +
       geom_point(size = 2, alpha = 0.7) +
@@ -159,4 +185,4 @@ server <- function(input, output) {
 
 shinyApp(ui = ui, server = server)
 
-## Still needs a lot of editing!
+## Some progress: made 2 graphs
