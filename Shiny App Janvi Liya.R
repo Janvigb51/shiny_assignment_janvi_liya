@@ -28,39 +28,101 @@ dig_data <- dig %>%
 # Get Started
 # Define User Interface and Server + functions
 ui <- dashboardPage(
-  dashboardHeader(title = "Digitalis Investigation Group", titleWidth = 450),
+  dashboardHeader(title = "DIG - Digoxin Data Explorer", titleWidth = 450),
   dashboardSidebar(
-    dropdownButton(
-      inputId = "filters", label = "Show filters", icon = icon("sliders"), circle = FALSE, status = "primary", width = "320px",
-      checkboxGroupInput(inputId = "treatment", label = "Select Treatment:", choices = c("treatment", "placebo"), selected = c("treatment", "placebo")),
-      sliderInput(inputId = "age", label = "Select Age:", min = 20, max = 90, value = c(60, 70)),
-      checkboxGroupInput(inputId = "sex", label = "Select Gender:", choices = c("male", "female"), selected = c("male", "female")),
-      sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):", min = 10, max = 65, value = c(10, 65)),
-      sliderInput(inputId = "diabp", label = "Select Diastolic BP:", min = 20, max = 190, value = c(60, 90)),
-      sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140)),
-      checkboxGroupInput(inputId = "cvd", label = "Select Cardiovascular Disease:", choices = c("NO", "YES"), selected = c("NO", "YES")),
-      checkboxGroupInput(inputId = "hosp", label = "Select Hospitalization:", choices = c("NO", "YES"), selected = c("NO", "YES")),
-      sliderInput(inputId = "hospdays", label = "Select Hospitalization Days:", min = 0, max = 1800, value = c(30, 90)),
-      checkboxGroupInput(inputId = "death", label = "Select Vital Status:", choices = c("death", "alive"), selected = c("death", "alive")),
-      sliderInput(inputId = "deathdays", label = "Select Death Day:", min = 0, max = 1800, value = c(1300, 1600)))),
+    width = 240,
+    sidebarMenu(
+      id = "sidebar",
+      style = "position: relative; overflow: visible;",
+      menuItem( "Digitalis Investigation Group", tabName = "intro",
+                icon = icon("user-md"), selected = TRUE),
+      menuItem("Age vs BMI", tabName = "age_bmi", icon = icon("vial")),
+      menuItem(HTML("Diastolic vs Systolic<br>Blood Pressure"),
+               tabName = "bp", icon = icon("heartbeat")),
+      conditionalPanel(
+        condition = "input.sidebar == 'age_bmi'",
+        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                           choices = c("treatment", "placebo"),
+                           selected = c("treatment", "placebo")),
+        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                           choices = c("male", "female"),
+                           selected = c("male", "female")),
+        sliderInput(inputId = "age", label = "Select Age:",
+                    min = 20, max = 90, value = c(60, 70)),
+        sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):",
+                    min = 10, max = 65, value = c(10, 65))),
+      conditionalPanel(
+        condition = "input.sidebar == 'bp'",
+        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                           choices = c("treatment", "placebo"),
+                           selected = c("treatment", "placebo")),
+        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                           choices = c("male", "female"),
+                           selected = c("male", "female")),
+        sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
+                    min = 20, max = 190, value = c(60, 90)),
+        sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
+                    min = 70, max = 220, value = c(100, 140))))),
+    
+    
+#    dropdownButton(
+#      inputId = "filters", label = "Show filters", icon = icon("sliders"), circle = FALSE, status = "primary", width = "320px",
+#      checkboxGroupInput(inputId = "treatment", label = "Select Treatment:", choices = c("treatment", "placebo"), selected = c("treatment", "placebo")),
+#      sliderInput(inputId = "age", label = "Select Age:", min = 20, max = 90, value = c(60, 70)),
+#      checkboxGroupInput(inputId = "sex", label = "Select Gender:", choices = c("male", "female"), selected = c("male", "female")),
+#      sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):", min = 10, max = 65, value = c(10, 65)),
+#      sliderInput(inputId = "diabp", label = "Select Diastolic BP:", min = 20, max = 190, value = c(60, 90)),
+#      sliderInput(inputId = "sysbp", label = "Select Systolic BP:", min = 70, max = 220, value = c(100, 140)),
+#      checkboxGroupInput(inputId = "cvd", label = "Select Cardiovascular Disease:", choices = c("NO", "YES"), selected = c("NO", "YES")),
+#      checkboxGroupInput(inputId = "hosp", label = "Select Hospitalization:", choices = c("NO", "YES"), selected = c("NO", "YES")),
+#      sliderInput(inputId = "hospdays", label = "Select Hospitalization Days:", min = 0, max = 1800, value = c(30, 90)),
+#      checkboxGroupInput(inputId = "death", label = "Select Vital Status:", choices = c("death", "alive"), selected = c("death", "alive")),
+#      sliderInput(inputId = "deathdays", label = "Select Death Day:", min = 0, max = 1800, value = c(1300, 1600)))),
   dashboardBody(
-    plotOutput("plot1"),
-  ))
+    tabItems(
+      tabItem(tabName = "intro",
+              h3("Welcome"),
+              br(),
+              p("This dashboard allows you to explore the DIG (Digitalis Investigation Group)
+                dataset. Digoxin, derived from the Digitalis plant, is a medication
+                that has been used for years to help strenghten heart contractions 
+                and control heart rate. The purpose of the this clinical trial was
+                to examine the safety and efficacy of Digoxin in treating patients
+                with congestive heart failure in sinus rhythm."),
+              br(),
+              div(style = "margin-bottom: 25px;",
+                  img(src = "digoxin.png", width = "80%"),
+                  div(p("Image source: ",
+                        em(a("The American Journal of Medicine Blog",
+                             href = "https://amjmed.org/contemporary-role-for-digoxin-in-heart-failure/",
+                             target = "_blank"))),
+                      style = "bottom: 1px;
+                      right: 10px;
+                      font-size: 15px;
+                      padding: 2px 4px;
+                      border-radius: 3px")),
+              p("To start with, navigate to the Age vs BMI tab in the left panel
+                to explore some relationships within the dataset."),
+              br(),
+              p("Enjoy the journey,"),
+              p("Janvi and Liya.")),
+      tabItem(tabName = "age_bmi",
+              plotOutput("plot1")),
+      tabItem(tabName = "bp",
+              plotOutput("plot2")))))
 
 server <- function(input, output) {
   dig_1 <- reactive({
+    req(input$sidebar == "age_bmi")
+    req(input$treatment, input$age, input$sex, input$bmi)
     dig_data %>%
       filter(TRTMT %in% input$treatment) %>%
       filter(AGE  >= input$age[1],  AGE  <= input$age[2]) %>%
       filter(SEX %in% input$sex) %>%
-      filter(BMI  >= input$bmi[1],  BMI  <= input$bmi[2]) %>%
-      filter(DIABP>= input$diabp[1],DIABP<= input$diabp[2]) %>%
-      filter(SYSBP>= input$sysbp[1],SYSBP<= input$sysbp[2]) %>%
-      filter(CVD %in% input$cvd) %>%
-      filter(HOSP %in% input$hosp) %>%
-      filter(DEATH %in% input$death)
+      filter(BMI  >= input$bmi[1],  BMI  <= input$bmi[2])
   })
   output$plot1 <- renderPlot({
+    req(input$sidebar == "age_bmi")
     df <- dig_1()
     ggplot(data = df, mapping = aes(x = AGE, y = BMI, colour = TRTMT, shape = SEX)) +
       geom_point(size = 2, alpha = 0.7) +
@@ -72,7 +134,28 @@ server <- function(input, output) {
            x = "Age",
            y= "BMI")
   })
-}
+  dig_2 <- reactive({
+    req(input$sidebar == "bp")
+    req(input$treatment, input$sex, input$diabp, input$sysbp)
+    dig_data %>%
+      filter(TRTMT %in% input$treatment) %>%
+      filter(SEX %in% input$sex) %>%
+      filter(DIABP  >= input$diabp[1],  DIABP  <= input$diabp[2]) %>%
+      filter(SYSBP >= input$sysbp[1], SYSBP <= input$sysbp[2])
+  })
+  output$plot2 <- renderPlot({
+    req(input$sidebar == "bp")
+    df_2 <- dig_2()
+    ggplot(data = df_2, mapping = aes(x = SYSBP, y = DIABP, colour = TRTMT, shape = SEX)) +
+      geom_point(size = 2, alpha = 0.7) +
+      scale_color_manual(values = c("placebo" = "darkblue", "treatment" = "maroon")) +
+      scale_shape_manual(values = c("male" = 15, "female" = 17)) +
+      labs(title = "Diastolic vs Systolic BP",
+           colour = "Treatment (by color)",
+           shape = "Sex (by shape)",
+           x = "Systolic BP",
+           y= "Diastolic BP")
+})}
 
 shinyApp(ui = ui, server = server)
 
