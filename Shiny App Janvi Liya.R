@@ -6,12 +6,16 @@ if (!require("shiny")) install.packages("shiny")
 if (!require("tidyverse")) install.packages("tidyverse")
 if (!require("DynNom")) install.packages("DynNom")
 if (!require("shinydashboard")) install.packages("shinydashboard")
-if (!require("shinyWidgets")) install.packages("shinyWidgets")
+
+if (!require("plotly")) install.packages("plotly")
+
 library(shiny)
 library(tidyverse)
 library(DynNom)
 library(shinydashboard)
 library(shinyWidgets)
+
+library(plotly)
 
 # Import the DIG dataset
 #setwd("C:/Users/janvi/Desktop/shiny_assignment_janvi_liya/R Assignment 5/")
@@ -39,6 +43,7 @@ ui <- dashboardPage(
       menuItem("Age vs Body Mass Index", tabName = "age_bmi", icon = icon("vial")),
       menuItem(HTML("Diastolic vs Systolic<br>Blood Pressure"),
                tabName = "bp", icon = icon("heartbeat")),
+      menuItem("All together", tabName = "parallel", icon = icon("chart-pie")),
       conditionalPanel(
         condition = "input.sidebar == 'age_bmi'",
         checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
@@ -52,7 +57,8 @@ ui <- dashboardPage(
         sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):",
                     min = 10, max = 65, value = c(10, 65))),
       conditionalPanel(
-        condition = "input.sidebar == 'bp'",
+        
+      condition = "input.sidebar == 'bp'",
         checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
                            choices = c("treatment", "placebo"),
                            selected = c("treatment", "placebo")),
@@ -62,9 +68,12 @@ ui <- dashboardPage(
         sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
                     min = 20, max = 190, value = c(60, 90)),
         sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
-                    min = 70, max = 220, value = c(100, 140))))),
-    
-    
+                    
+                  min = 70, max = 220, value = c(100, 140))),
+      conditionalPanel(
+        condition = "input.sidebar == 'parallel'",
+        downloadButton("downloadParallel", "Download Plot"))),
+
 #    dropdownButton(
 #      inputId = "filters", label = "Show filters", icon = icon("sliders"), circle = FALSE, status = "primary", width = "320px",
 #      checkboxGroupInput(inputId = "treatment", label = "Select Treatment:", choices = c("treatment", "placebo"), selected = c("treatment", "placebo")),
@@ -98,20 +107,22 @@ ui <- dashboardPage(
                         em(a("The American Journal of Medicine Blog",
                              href = "https://amjmed.org/contemporary-role-for-digoxin-in-heart-failure/",
                              target = "_blank"))),
-                      style = "bottom: 1px;
+                      
+                    style = "bottom: 1px;
                       right: 10px;
                       font-size: 15px;
                       padding: 2px 4px;
                       border-radius: 3px")),
-              p("To start with, navigate to the Age vs BMI tab in the left panel
-                to explore some relationships within the dataset."),
+              p("To start with, navigate to the Age vs BMI tab in the left to explore some relationships within the dataset."),
               br(),
               p("Enjoy the journey,"),
               p("Janvi and Liya.")),
       tabItem(tabName = "age_bmi",
               plotOutput("plot1")),
       tabItem(tabName = "bp",
-              plotOutput("plot2")))))
+              plotOutput("plot2")),
+      tabItem(tabName = "parallel",
+              plotOutput("parallelplot"))
 
 server <- function(input, output, session) {
   observeEvent(input$sidebar, {
@@ -182,6 +193,61 @@ server <- function(input, output, session) {
            x = "Systolic BP",
            y= "Diastolic BP")
 })}
+
+dig_parallel <- reactive({
+  req(input$sidebar == "parallel")
+  dig_data %>%
+    na.omit() %>%
+    mutate(
+      TRTMT_num = as.numeric(TRTMT) - 1,
+      SEX_num = as.numeric(SEX) - 1,
+      CVD_num = as.numeric(CVD) - 1,
+      HOSP_num = as.numeric(HOSP) - 1,
+      DEATH_num = as.numeric(DEATH) - 1
+    )
+})
+
+  output$parallelPlot <- renderPlotly({
+    df_parallel <- dig_parallel()
+    plot_ly(
+      type = 'parcoords',
+      line = list(color = df_parallel$TRTMT_num,
+                  colorscale = list(list(0, 'hotpink'), list(1, 'green4'))),
+      dimensions = list(
+        list(tickvals = c(0, 1), ticktext = c("placebo", "Treatment"),
+             label = 'Treatment', values = df_parallel$TRTMT_num),
+        list(range = c(min(df_parallel$AGE), max(df_parallel$AGE)),
+             label = 'Age', values = df_parallel$AGE),
+        list(tickvals = c(0, 1), ticktext = c("Male", "Female"),
+             label = 'Sex', values = df_parallel$SEX_num),
+        list(range = c(min(df_parallel$BMI), max(df_parallel$BMI)),
+             label = 'BMI', values = df_parallel$BMI),
+        list(range = c(min(df_parallel$DIABP), max(df_parallel$DIABP)),
+             label = 'Diastolic BP', values = df_parallel$DIABP),
+        list(range = c(min(df_parallel$SYSBP), max(df_parallel$SYSBP)),
+             label = 'Systolic BP', values = df_parallel$SYSBP),
+        list(tickvals = c(0,1), ticktext = c("NO", "YES"),
+             label = 'CVD', values = df_parallel$CVD_num),
+        list(tickvals = c(0,1), ticktext = c("NO", "YES"),
+             label = 'Hosp', values = df_parallel$HOSP_num),
+        list(range = c(min(df_parallel$HOSPDAYS), max(df_parallel$HOSPDAYS)),
+             label = 'Hosp days', values = df_parallel$HOSPDAYS),
+        list(tickvals = c(0,1), ticktext = c("death", "alive"),
+             label = 'Vital Status', values = df_parallel$DEATH_num),
+        list(range = c(min(df_parallel$DEATHDAY), max(df_parallel$DEATHDAY)),
+             label = 'Death day', values = df_parallel$DEATHDAY)
+      )
+    )
+  })
+  
+output$downloadParallel <- downloadHandler(
+    filename = function() {
+      "parallel_plot.html"
+    },
+    content = function(file) {
+      htmlwidgets::saveWidget(as_widget(output$parallelPlot()), file)
+    }
+  )
 
 shinyApp(ui = ui, server = server)
 
