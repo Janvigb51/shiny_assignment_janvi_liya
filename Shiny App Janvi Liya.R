@@ -15,6 +15,7 @@ if (!require("shinyWidgets")) install.packages("shinyWidgets")
 if (!require("htmlwidgets")) install.packages("htmlwidgets")
 if (!require("plotly")) install.packages("plotly")
 if (!require("DT")) install.packages("DT")
+if (!require("rsconnect")) install.packages('rsconnect')
 library(janitor)
 library(lubridate)
 library(table1)
@@ -28,6 +29,7 @@ library(plotly)
 library(htmlwidgets)
 library(plotly)
 library(DT)
+library(rsconnect)
 
 # Cleaning the data + selecting desired variables
 dig_data <- dig %>%
