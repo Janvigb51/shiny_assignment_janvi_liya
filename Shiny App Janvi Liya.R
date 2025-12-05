@@ -14,6 +14,7 @@ if (!require("shinydashboard")) install.packages("shinydashboard")
 if (!require("shinyWidgets")) install.packages("shinyWidgets")
 if (!require("htmlwidgets")) install.packages("htmlwidgets")
 if (!require("plotly")) install.packages("plotly")
+if (!require("DT")) install.packages("DT")
 library(janitor)
 library(lubridate)
 library(table1)
@@ -26,6 +27,7 @@ library(shinyWidgets)
 library(plotly)
 library(htmlwidgets)
 library(plotly)
+library(DT)
 
 # Cleaning the data + selecting desired variables
 dig_data <- dig %>%
@@ -54,6 +56,7 @@ ui <- dashboardPage(
       style = "position: relative; overflow: visible;",
       menuItem( "Digitalis Investigation Group", tabName = "intro",
                 icon = icon("user-md"), selected = TRUE),
+      menuItem("THE DATASET", tabName = "dataset", icon = icon("folder-open")),
       menuItem("Age vs Body Mass Index", tabName = "age_bmi", icon = icon("vial")),
       menuItem(HTML("Diastolic vs Systolic<br>Blood Pressure"),
                tabName = "bp", icon = icon("heartbeat")),
@@ -64,6 +67,9 @@ ui <- dashboardPage(
       menuItem(HTML("Death Probability<br>Across Age"),
                tabName = "death_prob", icon = icon("chart-line")),
       menuItem("All together", tabName = "parallel", icon = icon("chart-pie")),
+      conditionalPanel(
+        condition = "input.sidebar == 'dataset'",
+        downloadButton("downloadData", label = "Download Dataset")),
       conditionalPanel(
         condition = "input.sidebar == 'age_bmi'",
         checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
@@ -132,6 +138,22 @@ ui <- dashboardPage(
               br(),
               p("Enjoy the journey"),
               p("Janvi and Liya.")),
+      tabItem(tabName = "dataset",
+              fluidRow(
+                box(
+                  title = "DIG Dataset",
+                  width = 8,
+                  status = "primary",
+                  solidHeader = TRUE,
+                  div(
+                    style = "overflow-x: auto; width: 100%",
+                    DT::dataTableOutput("dataset_table"))),
+                box(
+                  title = "Abbreviatons",
+                  width = 4,
+                  status = "info",
+                  solidHeader = TRUE,
+                  tableOutput("abbrev_table")))),
       tabItem(tabName = "age_bmi",
               plotlyOutput("plot1", height = "600px", width = "90%")),
       tabItem(tabName = "bp",
@@ -182,7 +204,34 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "sex", selected = character(0))
     }
   })
-  # Plotting for tab 2 -----------------------------------------------------------------------
+  # Showing table for the dataset ----------------------------------------------------------------
+  datasetWidget <- reactive({
+    DT::datatable(dig_data,
+                  options = list(
+                    scrollx = TRUE,
+                    pageLength = 10,
+                    autoWidth = TRUE))})
+  output$dataset_table <- DT::renderDataTable({datasetWidget()})
+  output$abbrev_table <- renderTable({
+    data.frame(
+      Abbreviation = c("ID","TRTMT","AGE","SEX","BMI","KLEVEL","CREAT",
+                   "DIABP","SYSBP","DIABETES","HYPERTEN","CVD","WHF","HOSP",
+                   "HOSPDAYS","DEATH","DEATHDAY"),
+      Meaning = c("Patient Identification", "Treatment group (Placebo/Treatment)",
+                  "Age of patient (years)", "Sex/Gender of patient", "Body Mass Index",
+                  "Potassium level", "Creatinine", "Diastolic blood pressure",
+                  "Systolic blood pressure", "Diabetes", "Hypertension",
+                  "Cardiovascular disease", "Worsening heart failure",
+                  "Hospitalization", "Hospital Days", "Vital Status", "Date of death"))
+  })
+  output$downloadData <- downloadHandler(
+    filename = function() {"dataset_table.html"},
+    content  = function(file) {
+      htmlwidgets::saveWidget(
+        widget = datasetWidget(),
+        file   = file,
+        selfcontained = TRUE)})
+  # Plotting age vs bmi -----------------------------------------------------------------------
   dig_1 <- reactive({
     req(input$sidebar == "age_bmi")
     df <- dig_data
@@ -213,7 +262,7 @@ server <- function(input, output, session) {
            y= "BMI")
     plotly::ggplotly(p1, tooltip = c("AGE", "BMI", "TRTMT", "SEX"))
   })
-  # Plotting for tab 3 -----------------------------------------------------------------------
+  # Plotting diabp vs sysbp -----------------------------------------------------------------------
   dig_2 <- reactive({
     req(input$sidebar == "bp")
     df <- dig_data
@@ -244,7 +293,7 @@ server <- function(input, output, session) {
            y= "Diastolic BP")
     plotly::ggplotly(p2, tooltip = c("SYSBP", "DIABP", "TRTMT", "SEX"))
   })
-  # Plotting for tab 4 -----------------------------------------------------------------------
+  # Plotting age vs vital status -----------------------------------------------------------------------
   dig_3 <- reactive({
     req(input$sidebar == "age_death")
     dig_data %>%
@@ -259,7 +308,7 @@ server <- function(input, output, session) {
            box = list(visible = TRUE), meanline = list(visible = TRUE),
            points = "suspectedoutliers", jitter = 0.1, scalemode = "count")
   })
-  # Plotting for tab 5 -----------------------------------------------------------------------
+  # Plotting hsopdays vs vital status -----------------------------------------------------------------------
   dig_4 <- reactive({
     req(input$sidebar == "hosp_death")
     dig_data %>%
@@ -287,7 +336,7 @@ server <- function(input, output, session) {
     subplot(p_alive, p_death, nrows = 1, shareY = TRUE, titleX = TRUE, titleY = TRUE) %>%
       layout(showlegend = TRUE)
   })
-  # Plotting for tab 6 ----------------------------------------------------------------------- 
+  # Plotting death prob across age ----------------------------------------------------------------------- 
   # New subset of the data for death probability across age (grouped by treatment)
   death_prob <- dig_data %>%
     group_by(AGE, TRTMT) %>%
@@ -326,7 +375,7 @@ server <- function(input, output, session) {
   output$death_prob_table <- renderDataTable({
     death_prob
   })
-  # Plotting for tab 7 -----------------------------------------------------------------------
+  # Plotting parallel -----------------------------------------------------------------------
   dig_parallel <- reactive({
     req(input$sidebar == "parallel")
     dig_data %>%
