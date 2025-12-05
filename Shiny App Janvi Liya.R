@@ -45,11 +45,13 @@ dig_data <- dig %>%
     HOSP = factor(HOSP, levels = c(0,1), labels = c("NO","YES")),
     DEATH = factor(DEATH, levels = c(0,1), labels = c("alive","death")))
 
-# Get Started
+
 # Define User Interface and Server + functions
 ui <- dashboardPage(
   skin = "red",
+  
   dashboardHeader(title = "DIG (Digoxin) Data Explorer", titleWidth = 450),
+  
   dashboardSidebar(
     width = 240,
     sidebarMenu(
@@ -69,91 +71,58 @@ ui <- dashboardPage(
                tabName = "hosp_death", icon = icon("syringe")),
       menuItem(HTML("Death Probability<br>Across Age"),
                tabName = "death_prob", icon = icon("chart-line")),
+      menuItem("Comorbidities Overview", tabName = "comorb", icon = icon("layer-group")),
       menuItem("All together", tabName = "parallel", icon = icon("chart-pie")),
       conditionalPanel(
         condition = "input.sidebar == 'dataset'",
-        downloadButton("downloadData", label = "Download Dataset")),
-      conditionalPanel(
-        condition = "input.sidebar == 'age_bmi'",
-        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
-                           choices = c("treatment", "placebo"),
-                           selected = c("treatment", "placebo")),
-        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
-                           choices = c("male", "female"),
-                           selected = c("male", "female")),
-        sliderInput(inputId = "age", label = "Select Age Range:",
-                    min = 20, max = 90, value = c(60, 70)),
-        sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):",
-                    min = 10, max = 65, value = c(10, 65))),
-      conditionalPanel(
-        condition = "input.sidebar == 'bp'",
-        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
-                           choices = c("treatment", "placebo"),
-                           selected = c("treatment", "placebo")),
-        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
-                           choices = c("male", "female"),
-                          selected = c("male", "female")),
-        sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
-                    min = 20, max = 190, value = c(60, 90)),
-        sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
-                    min = 70, max = 220, value = c(100, 140))),
-      conditionalPanel(
-        condition = "input.sidebar == 'klevel_creat'",
-        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
-                           choices = c("treatment", "placebo"),
-                           selected = c("treatment", "placebo")),
-        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
-                           choices = c("male", "female"),
-                           selected = c("male", "female")),
-        sliderInput(inputId = "klevel", label = "Select Potassium Level:",
-                    min = 0, max = 6.5, value = c(3.5, 5)),
-        sliderInput(inputId = "creat", label = "Select Creatinine:",
-                    min = 0, max = 3.8, value = c(0.8, 1.4))),
-      conditionalPanel(
-        condition = "input.sidebar == 'age_death'",
-        sliderInput(inputId = "age", label = "Select Age Range:",
-                    min = 20, max = 90, value = c(20, 50))),
-      conditionalPanel(
-        condition = "input.sidebar == 'hosp_death'",
-        sliderInput(inputId = "hosp", label = "Select Hospital Days Range:",
-                    min = 0, max = 2000, value = c(0, 1500))),
-      conditionalPanel(
-        condition = "input.sidebar == 'death_prob'",
-        sliderInput(inputId = "age_window", label = "Age (press the play button below)",
-                    min = 20, max = 90, value = 30, step = 1, animate = animationOptions(interval = 300))),
-      conditionalPanel(
-        condition = "input.sidebar == 'parallel'",
-        downloadButton("downloadParallel", label = "Download Plot")))),
+        downloadButton("downloadData", label = "Download Dataset")))),
+  
   dashboardBody(
     tabItems(
       tabItem(tabName = "intro",
-              h3("Welcome"),
-              br(),
-              p("This dashboard allows you to explore the DIG (Digitalis Investigation Group)
-                Trial dataset. Digoxin, derived from the Digitalis plant, is a medication
-                that has been used for years to help strenghten heart contractions 
-                and control heart rate. The purpose of the this clinical trial was
-                to examine the safety and efficacy of Digoxin in treating patients
-                with congestive heart failure in sinus rhythm."),
-              br(),
-              div(style = "margin-bottom: 25px;",
-                  img(src = "digoxin.png", width = "50%"),
-                  div(p("Image source: ",
-                        em(a("The American Journal of Medicine Blog",
-                             href = "https://amjmed.org/contemporary-role-for-digoxin-in-heart-failure/",
-                             target = "_blank"))),
-                    style = "bottom: 1px;
+              fluidRow(
+                column(
+                  width = 6,
+                  h3("Welcome"),
+                  br(),
+                  p("This dashboard allows you to explore the DIG (Digitalis Investigation Group)
+Trial dataset. The DIG (Digitalis Investigation Group) Trial was a randomized, double-blind, multicenter 
+trial with more than 300 centers in the United States and Canada participating. The purpose of the trial was to 
+examine the safety and efficacy of Digoxin in treating patients with congestive heart failure in sinus rhythm. 
+Digoxin, derived from the Digitalis plant, is a medication that has been used for years
+to help strenghten heart contractions and control heart rate. 
+Digitalis was introduced clinically more than 200 
+years ago and has since become a commonly prescribed medication 
+for the treatment of heart failure; however, there was considerable uncertainty surrounding its safety and efficacy. 
+Small trials indicated that Digoxin alleviated some of the symptoms of heart failure, prolonged exercise tolerance, 
+and generally improved the quality of patients’ lives. Unfortunately, these trials were generally small and although 
+they did focus on the effect of treatment on patients’ relief from heart failure symptoms and quality of life, they 
+failed to address the effect of treatment on cardiovascular outcomes. Questions about the safety of Digoxin were also 
+a concern. Digoxin toxicity is uncommon in small trials with careful surveillance, however, the long-term effects of 
+therapeutic levels of Digoxin were less clear. The DIG dataset consists of baseline and outcome data from the main DIG trial. 
+In the main trial, heart failure patients meeting the eligibility criterion and whose ejection fraction was 45% or less
+were randomized to receive either a placebo or digoxin. Outcomes assessed in the trial included: cardiovascular mortality,
+hospitalization or death from worsening heart failure, hospitalization due to other cardiovascular causes and hospitalization
+due to non-cardiovascular causes."),   
+                  br(),
+                  p("To start with, navigate to the DATASET tab in the left panel to explore the DIG data, and
+then navigate through the rest of the tabs to explore some relationships and how certain variables vary 
+within the dataset."),
+                  p("Enjoy the journey"),
+                  p("Janvi and Liya.")),
+                column(
+                  width = 6,
+                  div(style = "margin-bottom: 25px;",
+                      img(src = "digoxin.png", width = "100%"),
+                      div(p("Image source: ",
+                            em(a("The American Journal of Medicine Blog",
+                                 href = "https://amjmed.org/contemporary-role-for-digoxin-in-heart-failure/",
+                                 target = "_blank"))),
+                          style = "bottom: 1px;
                       right: 10px;
                       font-size: 15px;
                       padding: 2px 4px;
-                      border-radius: 3px")),
-              p("To start with, navigate to the DATASET tab in the left panel
-                to explore the DIG data, and then navigate through the rest of the
-                tabs to explore some relationships and how certain variables vary 
-                within the dataset."),
-              br(),
-              p("Enjoy the journey"),
-              p("Janvi and Liya.")),
+                      border-radius: 3px"))))),
       tabItem(tabName = "dataset",
               h3("DIG Dataset Overview"),
               p("This tab shows the main subset of the data used. Only significant
@@ -175,33 +144,82 @@ ui <- dashboardPage(
                   status = "info",
                   solidHeader = TRUE,
                   tableOutput("abbrev_table")))),
+      
       tabItem(tabName = "age_bmi",
-              plotlyOutput("plot1", height = "600px", width = "90%")),
+              fluidRow(column(width = 3,
+                              checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                                                 choices = c("treatment", "placebo"),
+                                                 selected = c("treatment", "placebo")),
+                              checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                                                 choices = c("male", "female"),
+                                                 selected = c("male", "female")),
+                              sliderInput(inputId = "age", label = "Select Age Range:",
+                                          min = 20, max = 90, value = c(60, 70)),
+                              sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):",
+                                          min = 10, max = 65, value = c(10, 65))),
+                       column(width = 9,
+                              plotlyOutput("plot1", height = "600px", width = "90%")))),
+      
       tabItem(tabName = "bp",
-              plotlyOutput("plot2", height = "600px", width = "90%")),
+              fluidRow(column(width = 3,
+                              checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                                                 choices = c("treatment", "placebo"),
+                                                 selected = c("treatment", "placebo")),
+                              checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                                                 choices = c("male", "female"),
+                                                 selected = c("male", "female")),
+                              sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
+                                          min = 20, max = 190, value = c(60, 90)),
+                              sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
+                                          min = 70, max = 220, value = c(100, 140))),
+                       column(width = 9,
+                              plotlyOutput("plot2", height = "600px", width = "90%")))),
+      
+      
       tabItem(tabName = "klevel_creat",
-              plotlyOutput("plot6", height = "600px", width = "90%")),
+              fluidRow(column(width = 3,
+                              checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                                                 choices = c("treatment", "placebo"),
+                                                 selected = c("treatment", "placebo")),
+                              checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                                                 choices = c("male", "female"),
+                                                 selected = c("male", "female")),
+                              sliderInput(inputId = "klevel", label = "Select Potassium Level:",
+                                          min = 0, max = 6.5, value = c(3.5, 5)),
+                              sliderInput(inputId = "creat", label = "Select Creatinine:",
+                                          min = 0, max = 3.8, value = c(0.8, 1.4))),
+                       column(width = 9,
+                              plotlyOutput("plot6", height = "600px", width = "90%")))),
+      
       tabItem(tabName = "age_death",
-              plotlyOutput("plot3", height = "600px", width = "80%"),
-              br(),
               p("Here, you can view the distribution of age among patients who
                 remained alive or died after follow-up. The colors represent the
                 different treatment groups. Click on one of the options from the
                 legend at the top right corner to hide that particular group.
                 Select a particular region in the plot to zoom in, double-click
-                anywhere in the plot to zoom out.")),
-      tabItem(tabName = "hosp_death",
-              plotlyOutput("plot4", height = "600px", width = "80%"),
+                anywhere in the plot to zoom out."),
               br(),
+              fluidRow(column(width = 3,
+                              sliderInput(inputId = "age", label = "Select Age Range:",
+                                          min = 20, max = 90, value = c(20, 50))),
+                       column(width = 9,
+                              plotlyOutput("plot3", height = "600px", width = "80%")))),
+      
+      tabItem(tabName = "hosp_death",
               p("These histograms show the distribution of hospital stay duration
                 for alive and deceased patients, with patiens separated by placebo/
                 treatment groups. Click on one of the options from the legend at
                 the top right corner to hide that particular group. Select a
                 particular region in either plot to zoom in, double-click anywhere
-                in that plot to zoom out.")),
-      tabItem(tabName = "death_prob",
-              plotlyOutput("plot5", height = "600px", width = "80%"),
+                in that plot to zoom out."),
               br(),
+              fluidRow(column(width = 3,
+                              sliderInput(inputId = "hosp", label = "Select Hospital Days Range:",
+                                          min = 0, max = 2000, value = c(0, 1500))),
+                       column(width = 9,
+                              plotlyOutput("plot4", height = "600px", width = "80%")))),
+      
+      tabItem(tabName = "death_prob",
               p("This graphs shows how the probability of death varies as patients
                 age, in both the placebo and treatment groups. Click on the",
                 em('autoscale'), "icon at the top of the graph to reset the view and
@@ -211,9 +229,40 @@ ui <- dashboardPage(
                 treatment group. Click on any of the variables (column names) to
                 order the data from lowest to highest or viceversa."),
               br(),
-              h4("Death Probability Table"),
-              dataTableOutput("death_prob_table")),
+              fluidRow(column(width = 3,
+                              sliderInput(inputId = "age_window", label = "Age (press the play button below)",
+                                          min = 20, max = 90, value = 30, step = 1, animate = animationOptions(interval = 300))),
+                       column(width = 9,
+                              plotlyOutput("plot5", width = "80%")),
+                       column(width = 12,
+                              h4("Death Probability Table"),
+                              dataTableOutput("death_prob_table")))),
+      
+      tabItem(tabName = "comorb",
+              fluidRow(column(width = 3,
+                              checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                                                 choices = c("treatment", "placebo"),
+                                                 selected = c("treatment", "placebo")),
+                              checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                                                 choices = c("male", "female"),
+                                                 selected = c("male", "female")),
+                              checkboxGroupInput(inputId = "diabetes", label = "Select Diabetes:",
+                                                 choices = c("YES", "NO"),
+                                                 selected = c("YES", "NO")),
+                              checkboxGroupInput(inputId = "hyperten", label = "Select Hypertension:",
+                                                 choices = c("YES", "NO"),
+                                                 selected = c("YES", "NO")),
+                              checkboxGroupInput(inputId = "cvd", label = "Select Cardiovascular Disease:",
+                                                 choices = c("YES", "NO"),
+                                                 selected = c("YES", "NO")),
+                              checkboxGroupInput(inputId = "whf", label = "Select Worsening Heart Failure:",
+                                                 choices = c("YES", "NO"),
+                                                 selected = c("YES", "NO"))),
+                       column(width = 9,
+                              plotlyOutput("plot7", height = "600px", width = "80%")))),
+      
       tabItem(tabName = "parallel",
+              downloadButton("downloadParallel", label = "Download Plot"),
               plotlyOutput("parallelplot")))))
 
 server <- function(input, output, session) {
@@ -223,6 +272,10 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "sex", selected = character(0))
     }
     if (input$sidebar == "bp") {
+      updateCheckboxGroupInput(session, "treatment", selected = character(0))
+      updateCheckboxGroupInput(session, "sex", selected = character(0))
+    }
+    if (input$sidebar == "klevel_creat") {
       updateCheckboxGroupInput(session, "treatment", selected = character(0))
       updateCheckboxGroupInput(session, "sex", selected = character(0))
     }
@@ -238,8 +291,8 @@ server <- function(input, output, session) {
   output$abbrev_table <- renderTable({
     data.frame(
       Abbreviation = c("ID","TRTMT","AGE","SEX","BMI","KLEVEL","CREAT",
-                   "DIABP","SYSBP","DIABETES","HYPERTEN","CVD","WHF","HOSP",
-                   "HOSPDAYS","DEATH","DEATHDAY"),
+                       "DIABP","SYSBP","DIABETES","HYPERTEN","CVD","WHF","HOSP",
+                       "HOSPDAYS","DEATH","DEATHDAY"),
       Meaning = c("Patient Identification", "Treatment group (Placebo/Treatment)",
                   "Age of patient (years)", "Sex/Gender of patient", "Body Mass Index",
                   "Potassium level", "Creatinine", "Diastolic blood pressure",
@@ -326,12 +379,12 @@ server <- function(input, output, session) {
     req(input$sidebar == "age_death")
     df_3 <- dig_3()
     plot_ly(data = df_3, x = ~DEATH, y = ~AGE,
-           color = ~TRTMT, colors = c("placebo" = "darkblue", "treatment" = "pink2"),
-           type = "violin", split = ~DEATH,
-           box = list(visible = TRUE), meanline = list(visible = TRUE),
-           points = "suspectedoutliers", jitter = 0.1, scalemode = "count")
+            color = ~TRTMT, colors = c("placebo" = "darkblue", "treatment" = "pink2"),
+            type = "violin", split = ~DEATH,
+            box = list(visible = TRUE), meanline = list(visible = TRUE),
+            points = "suspectedoutliers", jitter = 0.1, scalemode = "count")
   })
-  # Plotting hsopdays vs vital status -----------------------------------------------------------------------
+  # Plotting hospdays vs vital status -----------------------------------------------------------------------
   dig_4 <- reactive({
     req(input$sidebar == "hosp_death")
     dig_data %>%
@@ -451,9 +504,85 @@ server <- function(input, output, session) {
         widget = parallelplot(),
         file = file,
         selfcontained = TRUE)})
+  # Plotting klevel vs creatinine -----------------------------------------------------------
+  dig_6 <- reactive({
+    req(input$sidebar == "klevel_creat")
+    df <- dig_data
+    if (length(input$treatment) == 0 || length(input$sex) == 0) {
+      return(df[0, ])}
+    dig_data %>%
+      filter(TRTMT %in% input$treatment) %>%
+      filter(SEX %in% input$sex) %>%
+      filter(KLEVEL  >= input$klevel[1],  KLEVEL  <= input$klevel[2]) %>%
+      filter(CREAT >= input$creat[1], CREAT <= input$creat[2])
+  })
+  output$plot6 <- plotly::renderPlotly({
+    req(input$sidebar == "klevel_creat")
+    validate(
+      need(length(input$treatment) > 0,
+           "Please select at least one treatment group"),
+      need(length(input$sex) > 0,
+           "Please select at least one gender"))
+    df_6 <- dig_6()
+    p6 <- ggplot(data = df_6, mapping = aes(x = CREAT, y = KLEVEL, colour = SEX)) +
+      geom_point(alpha = 0.7, size = 2) +
+      scale_color_manual(values = c("male" = "purple4", "female" = "brown1")) +
+      facet_wrap(~ TRTMT) +
+      labs(title = "Potassium Level vs Creatinine",
+           x = "Creatinine",
+           y = "Potassium (K level)",
+           colour = "Sex")
+    plotly::ggplotly(p6, tooltip = c("CREAT", "KLEVEL", "SEX", "TRTMT"))
+  })
+  # Plotting comorbidities -----------------------------------------------------------
+  dig_7 <- reactive({
+    req(input$sidebar == "comorb")
+    dig_data %>%
+      filter(TRTMT %in% input$treatment) %>%
+      filter(SEX %in% input$sex) %>%
+      filter(DIABETES %in% input$diabetes) %>%
+      filter(HYPERTEN %in% input$hyperten) %>%
+      filter(CVD %in% input$cvd) %>%
+      filter(WHF %in% input$whf)
+  })
+  output$plot7 <- plotly::renderPlotly({
+    req(input$sidebar == "comorb")
+    validate(
+      need(length(input$treatment) > 0,
+           "Please select at least one treatment group"),
+      need(length(input$sex) > 0,
+           "Please select at least one gender"),
+      need(length(input$diabetes) > 0,
+           "Please select at least one diabetes group"),
+      need(length(input$hyperten) > 0,
+           "Please select at least one hypertension group"),
+      need(length(input$cvd) > 0,
+           "Please select at least one CVD group"),
+      need(length(input$whf) > 0,
+           "Please select at least one WHF group"))
+    df_7 <- dig_7()
+    df_long <- df_7 %>%
+      pivot_longer(
+        cols = c(DIABETES, HYPERTEN, CVD, WHF),
+        names_to = "Comorbidity",
+        values_to = "Status"
+      ) %>%
+      filter(Status == "YES") %>%
+      group_by(TRTMT, SEX, Comorbidity) %>%
+      summarise(Prop = n() / nrow(df_7), .groups = "drop")
+    p7 <- ggplot(data = df_long, mapping = aes(x = Comorbidity, y = Prop, fill = SEX)) +
+      geom_col(position = position_dodge()) +
+      facet_wrap(~ TRTMT) +
+      labs(
+        title = "Comorbidities Overview",
+        x = "Comorbidity (Diabetes, Hypertension, CVD, WHF)",
+        y = "Proportion of patients",
+        fill = "Sex"
+      ) +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+    plotly::ggplotly(p7)
+  })
   
 } #server part enclosed
 
 shinyApp(ui = ui, server = server)
-
-# have to plot klevel vs creat
