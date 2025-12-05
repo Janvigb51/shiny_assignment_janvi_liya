@@ -23,7 +23,7 @@ dig <- read.csv("DIG-1.csv")
 # Cleaning the data + selecting desired variables
 dig$TRTMT <- factor(dig$TRTMT, levels = c(0,1), labels = c("placebo","treatment"))
 dig$SEX <- factor(dig$SEX, levels = c(1,2), labels = c("male","female"))
-dig$DEATH <- factor(dig$DEATH, levels = c(0,1), labels = c("death","alive"))
+dig$DEATH <- factor(dig$DEATH, levels = c(1,0), labels = c("death","alive"))
 dig$HOSP <- factor(dig$HOSP, levels = c(0,1), labels = c("NO","YES"))
 dig$CVD <- factor(dig$CVD, levels = c(0,1), labels = c("NO","YES"))
 dig_data <- dig %>%
@@ -35,7 +35,8 @@ ui <- dashboardPage(
   dashboardHeader(title = "DIG - Digoxin Data Explorer", titleWidth = 450),
   dashboardSidebar(
     width = 240,
-    sidebarMenu(
+    
+  sidebarMenu(
       id = "sidebar",
       style = "position: relative; overflow: visible;",
       menuItem( "Digitalis Investigation Group", tabName = "intro",
@@ -55,21 +56,23 @@ ui <- dashboardPage(
         sliderInput(inputId = "age", label = "Select Age:",
                     min = 20, max = 90, value = c(60, 70)),
         sliderInput(inputId = "bmi", label = "Select BMI (Body Mass Index):",
-                    min = 10, max = 65, value = c(10, 65))),
+                    
+                  min = 10, max = 65, value = c(10, 65))),
       conditionalPanel(
         
       condition = "input.sidebar == 'bp'",
         checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
-                           choices = c("treatment", "placebo"),
+                           
+                          choices = c("treatment", "placebo"),
                            selected = c("treatment", "placebo")),
         checkboxGroupInput(inputId = "sex", label = "Select Gender:",
                            choices = c("male", "female"),
-                           selected = c("male", "female")),
+                           
+                          selected = c("male", "female")),
         sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
                     min = 20, max = 190, value = c(60, 90)),
         sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
-                    
-                  min = 70, max = 220, value = c(100, 140))),
+                    min = 70, max = 220, value = c(100, 140))),
       conditionalPanel(
         condition = "input.sidebar == 'parallel'",
         downloadButton("downloadParallel", "Download Plot"))),
@@ -112,19 +115,23 @@ ui <- dashboardPage(
                       right: 10px;
                       font-size: 15px;
                       padding: 2px 4px;
-                      border-radius: 3px")),
+                      
+                    border-radius: 3px")),
               p("To start with, navigate to the Age vs BMI tab in the left to explore some relationships within the dataset."),
               br(),
               p("Enjoy the journey,"),
-              p("Janvi and Liya.")),
+              
+            p("Janvi and Liya.")),
       tabItem(tabName = "age_bmi",
               plotOutput("plot1")),
       tabItem(tabName = "bp",
-              plotOutput("plot2")),
+              
+            plotOutput("plot2")),
       tabItem(tabName = "parallel",
               plotOutput("parallelplot"))
 
-server <- function(input, output, session) {
+
+    server <- function(input, output, session) {
   observeEvent(input$sidebar, {
     if (input$sidebar == "age_bmi") {
       updateCheckboxGroupInput(session, "treatment", selected = character(0))
@@ -240,14 +247,14 @@ dig_parallel <- reactive({
     )
   })
   
+
 output$downloadParallel <- downloadHandler(
     filename = function() {
       "parallel_plot.html"
     },
     content = function(file) {
       htmlwidgets::saveWidget(as_widget(output$parallelPlot()), file)
-    }
-  )
+    })
 
 shinyApp(ui = ui, server = server)
 
