@@ -33,6 +33,7 @@ library(DT)
 dig_data <- dig %>%
   select(ID, TRTMT, AGE, SEX, BMI, KLEVEL, CREAT, DIABP, SYSBP, DIABETES,
          HYPERTEN, CVD, WHF, HOSP, HOSPDAYS, DEATH, DEATHDAY) %>%
+  filter(KLEVEL != 434) %>%
   na.omit()%>%
   mutate(
     TRTMT = factor(TRTMT, levels = c(0,1), labels = c("placebo","treatment")),
@@ -60,6 +61,8 @@ ui <- dashboardPage(
       menuItem("Age vs Body Mass Index", tabName = "age_bmi", icon = icon("vial")),
       menuItem(HTML("Diastolic vs Systolic<br>Blood Pressure"),
                tabName = "bp", icon = icon("heartbeat")),
+      menuItem(HTML("Potassium Level<br>vs Creatinine"),
+               tabName = "klevel_creat", icon = icon("tint")),
       menuItem(HTML("Age Distribution<br>by Vital Status"),
                tabName = "age_death", icon = icon("hourglass-half")),
       menuItem(HTML("Hospital Days<br>by Vital Status"),
@@ -94,6 +97,18 @@ ui <- dashboardPage(
                     min = 20, max = 190, value = c(60, 90)),
         sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
                     min = 70, max = 220, value = c(100, 140))),
+      conditionalPanel(
+        condition = "input.sidebar == 'klevel_creat'",
+        checkboxGroupInput(inputId = "treatment", label = "Select Treatment:",
+                           choices = c("treatment", "placebo"),
+                           selected = c("treatment", "placebo")),
+        checkboxGroupInput(inputId = "sex", label = "Select Gender:",
+                           choices = c("male", "female"),
+                           selected = c("male", "female")),
+        sliderInput(inputId = "klevel", label = "Select Potassium Level:",
+                    min = 0, max = 6.5, value = c(3.5, 5)),
+        sliderInput(inputId = "creat", label = "Select Creatinine:",
+                    min = 0, max = 3.8, value = c(0.8, 1.4))),
       conditionalPanel(
         condition = "input.sidebar == 'age_death'",
         sliderInput(inputId = "age", label = "Select Age Range:",
@@ -132,13 +147,19 @@ ui <- dashboardPage(
                       font-size: 15px;
                       padding: 2px 4px;
                       border-radius: 3px")),
-              p("To start with, navigate to the Age vs BMI tab in the left panel
-                to explore some relationships and how certain variables vary 
+              p("To start with, navigate to the DATASET tab in the left panel
+                to explore the DIG data, and then navigate through the rest of the
+                tabs to explore some relationships and how certain variables vary 
                 within the dataset."),
               br(),
               p("Enjoy the journey"),
               p("Janvi and Liya.")),
       tabItem(tabName = "dataset",
+              h3("DIG Dataset Overview"),
+              p("This tab shows the main subset of the data used. Only significant
+              variables were chosen for further downstream analysis.
+              You can scroll horizontally to explore all columns. Additionally,
+                you can download the table from the download button in the left panel."),
               fluidRow(
                 box(
                   title = "DIG Dataset",
@@ -158,6 +179,8 @@ ui <- dashboardPage(
               plotlyOutput("plot1", height = "600px", width = "90%")),
       tabItem(tabName = "bp",
               plotlyOutput("plot2", height = "600px", width = "90%")),
+      tabItem(tabName = "klevel_creat",
+              plotlyOutput("plot6", height = "600px", width = "90%")),
       tabItem(tabName = "age_death",
               plotlyOutput("plot3", height = "600px", width = "80%"),
               br(),
@@ -432,3 +455,5 @@ server <- function(input, output, session) {
 } #server part enclosed
 
 shinyApp(ui = ui, server = server)
+
+# have to plot klevel vs creat
