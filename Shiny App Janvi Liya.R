@@ -1,6 +1,7 @@
 #Import the DIG dataset
 #setwd("C:/Users/janvi/Desktop/R Assignment 5/")
-dig.df <- read.csv("DIG-1.csv")
+dig <- read.csv("DIG-1.csv")
+
 # Install the required packages
 if (!require("janitor")) install.packages("janitor")
 if (!require("lubridate")) install.packages("lubridate")
@@ -24,10 +25,8 @@ library(shinydashboard)
 library(shinyWidgets)
 library(plotly)
 library(htmlwidgets)
+library(plotly)
 
-# Import the DIG dataset
-#setwd("C:/Users/janvi/Desktop/shiny_assignment_janvi_liya/R Assignment 5/")
-dig <- read.csv("DIG-1.csv")
 # Cleaning the data + selecting desired variables
 dig_data <- dig %>%
   select(ID, TRTMT, AGE, SEX, BMI, KLEVEL, CREAT, DIABP, SYSBP, DIABETES,
@@ -84,7 +83,7 @@ ui <- dashboardPage(
                            selected = c("treatment", "placebo")),
         checkboxGroupInput(inputId = "sex", label = "Select Gender:",
                            choices = c("male", "female"),
-                           selected = c("male", "female")),
+                          selected = c("male", "female")),
         sliderInput(inputId = "diabp", label = "Select Diastolic BP:",
                     min = 20, max = 190, value = c(60, 90)),
         sliderInput(inputId = "sysbp", label = "Select Systolic BP:",
@@ -122,7 +121,7 @@ ui <- dashboardPage(
                         em(a("The American Journal of Medicine Blog",
                              href = "https://amjmed.org/contemporary-role-for-digoxin-in-heart-failure/",
                              target = "_blank"))),
-                      style = "bottom: 1px;
+                    style = "bottom: 1px;
                       right: 10px;
                       font-size: 15px;
                       padding: 2px 4px;
@@ -131,7 +130,7 @@ ui <- dashboardPage(
                 to explore some relationships and how certain variables vary 
                 within the dataset."),
               br(),
-              p("Enjoy the journey,"),
+              p("Enjoy the journey"),
               p("Janvi and Liya.")),
       tabItem(tabName = "age_bmi",
               plotlyOutput("plot1", height = "600px", width = "90%")),
@@ -173,7 +172,6 @@ ui <- dashboardPage(
               plotlyOutput("parallelplot")))))
 
 server <- function(input, output, session) {
-  # Plotting for tab 2 -----------------------------------------------------------------------
   observeEvent(input$sidebar, {
     if (input$sidebar == "age_bmi") {
       updateCheckboxGroupInput(session, "treatment", selected = character(0))
@@ -184,6 +182,7 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "sex", selected = character(0))
     }
   })
+  # Plotting for tab 2 -----------------------------------------------------------------------
   dig_1 <- reactive({
     req(input$sidebar == "age_bmi")
     df <- dig_data
@@ -381,6 +380,6 @@ server <- function(input, output, session) {
         file = file,
         selfcontained = TRUE)})
   
-  } #server part enclosed
+} #server part enclosed
 
 shinyApp(ui = ui, server = server)
